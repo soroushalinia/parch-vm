@@ -42,11 +42,8 @@ die() {
 
 cleanup() {
     set +e
-    if [[ -n "$mount_dir" ]] && mountpoint -q "$mount_dir/boot"; then
-        umount "$mount_dir/boot"
-    fi
-    if [[ -n "$mount_dir" ]] && mountpoint -q "$mount_dir"; then
-        umount "$mount_dir"
+    if [[ -n "$mount_dir" ]]; then
+        umount -R "$mount_dir" 2>/dev/null || true
     fi
     for dev in "${loop_devices[@]}"; do
         losetup -d "$dev" 2>/dev/null || true
@@ -281,8 +278,7 @@ rm -rf /var/cache/pacman/pkg/* /var/lib/pacman/sync/*
 CHROOT
 
 sync
-umount "$mount_dir/boot"
-umount "$mount_dir"
+umount -R "$mount_dir"
 for dev in "${loop_devices[@]}"; do
     losetup -d "$dev"
 done
