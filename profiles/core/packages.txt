@@ -1,0 +1,4 @@
+networkmanager
+bash-completion
+parch-grub
+parch-plymouth

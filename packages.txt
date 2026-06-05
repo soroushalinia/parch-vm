@@ -1,0 +1,14 @@
+# VM foundation shared by every profile.
+base
+linux
+linux-firmware
+grub
+sudo
+vim
+git
+openssh
+qemu-guest-agent
+cloud-init
+cloud-guest-utils
+pacman-contrib
+paru
