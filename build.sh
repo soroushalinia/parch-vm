@@ -148,19 +148,19 @@ sgdisk --new=3:0:0 --typecode=3:8300 --change-name=3:PARCH_ROOT "$raw_image"
 loop_device="$(losetup --find --show "$raw_image")"
 loop_devices+=("$loop_device")
 
-p2_start=$(sgdisk -p "$raw_image" | awk '/^  2 / {print $2}')
-p2_end=$(sgdisk -p "$raw_image" | awk '/^  2 / {print $3}')
+p2_sector=$(sgdisk -i 2 "$raw_image" | awk '/^Partition size/ {print $3}')
+p2_start=$(sgdisk -i 2 "$raw_image" | awk '/^First sector/ {print $3}')
 loop_p2=$(losetup --find --show \
     -o $((p2_start * 512)) \
-    --sizelimit $(((p2_end - p2_start + 1) * 512)) \
+    --sizelimit $((p2_sector * 512)) \
     "$raw_image")
 loop_devices+=("$loop_p2")
 
-p3_start=$(sgdisk -p "$raw_image" | awk '/^  3 / {print $2}')
-p3_end=$(sgdisk -p "$raw_image" | awk '/^  3 / {print $3}')
+p3_sector=$(sgdisk -i 3 "$raw_image" | awk '/^Partition size/ {print $3}')
+p3_start=$(sgdisk -i 3 "$raw_image" | awk '/^First sector/ {print $3}')
 loop_p3=$(losetup --find --show \
     -o $((p3_start * 512)) \
-    --sizelimit $(((p3_end - p3_start + 1) * 512)) \
+    --sizelimit $((p3_sector * 512)) \
     "$raw_image")
 loop_devices+=("$loop_p3")
 
