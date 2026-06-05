@@ -148,6 +148,10 @@ sgdisk --new=3:0:0 --typecode=3:8300 --change-name=3:PARCH_ROOT "$raw_image"
 
 loop_device="$(losetup --find --show --partscan "$raw_image")"
 udevadm settle
+for _ in {1..20}; do
+    [[ -b "${loop_device}p2" ]] && break
+    sleep 0.1
+done
 mkfs.fat -F 32 -n PARCH_EFI "${loop_device}p2"
 mkfs.ext4 -F -L PARCH_ROOT "${loop_device}p3"
 
