@@ -1,0 +1,3 @@
+[submodule "overlays/overlays/base-config"]
+	path = overlays/overlays/base-config
+	url = https://github.com/parchlinux/base-config
