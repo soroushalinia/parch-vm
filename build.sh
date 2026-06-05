@@ -49,6 +49,7 @@ cleanup() {
         umount "$mount_dir"
     fi
     if [[ -n "$loop_device" ]]; then
+        partx -d "$loop_device" 2>/dev/null || true
         losetup -d "$loop_device"
     fi
 }
@@ -104,10 +105,10 @@ required_commands=(
     mount
     mountpoint
     pacstrap
+    partx
     sgdisk
     truncate
     umount
-    udevadm
 )
 [[ "$output_format" == "raw" ]] || required_commands+=(qemu-img)
 for command_name in "${required_commands[@]}"; do
@@ -146,12 +147,8 @@ sgdisk --new=1:1MiB:+1MiB --typecode=1:ef02 --change-name=1:PARCH_BIOS "$raw_ima
 sgdisk --new=2:0:+512MiB --typecode=2:ef00 --change-name=2:PARCH_EFI "$raw_image"
 sgdisk --new=3:0:0 --typecode=3:8300 --change-name=3:PARCH_ROOT "$raw_image"
 
-loop_device="$(losetup --find --show --partscan "$raw_image")"
-udevadm settle
-for _ in {1..20}; do
-    [[ -b "${loop_device}p2" ]] && break
-    sleep 0.1
-done
+loop_device="$(losetup --find --show "$raw_image")"
+partx -a "$loop_device"
 mkfs.fat -F 32 -n PARCH_EFI "${loop_device}p2"
 mkfs.ext4 -F -L PARCH_ROOT "${loop_device}p3"
 
@@ -271,6 +268,7 @@ CHROOT
 sync
 umount "$mount_dir/boot"
 umount "$mount_dir"
+partx -d "$loop_device" 2>/dev/null || true
 losetup -d "$loop_device"
 loop_device=""
 
