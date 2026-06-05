@@ -13,8 +13,8 @@ image_size="16G"
 output_format="qcow2"
 output_path=""
 mount_dir=""
-loop_device=""
 raw_image=""
+loop_devices=()
 
 usage() {
     cat <<'EOF'
@@ -48,10 +48,9 @@ cleanup() {
     if [[ -n "$mount_dir" ]] && mountpoint -q "$mount_dir"; then
         umount "$mount_dir"
     fi
-    if [[ -n "$loop_device" ]]; then
-        partx -d "$loop_device" 2>/dev/null || true
-        losetup -d "$loop_device"
-    fi
+    for dev in "${loop_devices[@]}"; do
+        losetup -d "$dev" 2>/dev/null || true
+    done
 }
 trap cleanup EXIT
 
@@ -105,7 +104,6 @@ required_commands=(
     mount
     mountpoint
     pacstrap
-    partx
     sgdisk
     truncate
     umount
@@ -148,13 +146,30 @@ sgdisk --new=2:0:+512MiB --typecode=2:ef00 --change-name=2:PARCH_EFI "$raw_image
 sgdisk --new=3:0:0 --typecode=3:8300 --change-name=3:PARCH_ROOT "$raw_image"
 
 loop_device="$(losetup --find --show "$raw_image")"
-partx -a "$loop_device"
-mkfs.fat -F 32 -n PARCH_EFI "${loop_device}p2"
-mkfs.ext4 -F -L PARCH_ROOT "${loop_device}p3"
+loop_devices+=("$loop_device")
 
-mount "${loop_device}p3" "$mount_dir"
+p2_start=$(sgdisk -p "$raw_image" | awk '/^  2 / {print $2}')
+p2_end=$(sgdisk -p "$raw_image" | awk '/^  2 / {print $3}')
+loop_p2=$(losetup --find --show \
+    -o $((p2_start * 512)) \
+    --sizelimit $(((p2_end - p2_start + 1) * 512)) \
+    "$raw_image")
+loop_devices+=("$loop_p2")
+
+p3_start=$(sgdisk -p "$raw_image" | awk '/^  3 / {print $2}')
+p3_end=$(sgdisk -p "$raw_image" | awk '/^  3 / {print $3}')
+loop_p3=$(losetup --find --show \
+    -o $((p3_start * 512)) \
+    --sizelimit $(((p3_end - p3_start + 1) * 512)) \
+    "$raw_image")
+loop_devices+=("$loop_p3")
+
+mkfs.fat -F 32 -n PARCH_EFI "$loop_p2"
+mkfs.ext4 -F -L PARCH_ROOT "$loop_p3"
+
+mount "$loop_p3" "$mount_dir"
 mkdir -p "$mount_dir/boot"
-mount "${loop_device}p2" "$mount_dir/boot"
+mount "$loop_p2" "$mount_dir/boot"
 
 pacstrap -C "$PACMAN_CONFIG" -K "$mount_dir" "${packages[@]}"
 
@@ -268,9 +283,10 @@ CHROOT
 sync
 umount "$mount_dir/boot"
 umount "$mount_dir"
-partx -d "$loop_device" 2>/dev/null || true
-losetup -d "$loop_device"
-loop_device=""
+for dev in "${loop_devices[@]}"; do
+    losetup -d "$dev"
+done
+loop_devices=()
 
 rm -f "$output_path"
 if [[ "$output_format" == "qcow2" ]]; then
