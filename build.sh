@@ -170,6 +170,13 @@ mount "$loop_p2" "$mount_dir/boot"
 
 pacstrap -C "$PACMAN_CONFIG" -K "$mount_dir" "${packages[@]}"
 
+local_pkgs=("$ROOT_DIR/pkgs/parch-plymouth-"*.pkg.tar.zst "$ROOT_DIR/pkgs/parch-grub-theme-"*.pkg.tar.zst)
+if [[ "$profile" == "plasma" ]]; then
+    local_pkgs+=("$ROOT_DIR/pkgs/parch-dorood-"*.pkg.tar.zst)
+fi
+mkdir -p "$mount_dir/root/pkgs"
+cp "${local_pkgs[@]}" "$mount_dir/root/pkgs/"
+
 cp -a "$OVERLAY_DIR/etc/." "$mount_dir/etc/"
 install -Dm644 "$PACMAN_CONFIG" "$mount_dir/etc/pacman.conf"
 install -Dm644 "$ROOT_DIR/config/cloud.cfg.d/90-parch.cfg" \
@@ -224,6 +231,10 @@ install -Dm440 /dev/stdin /etc/sudoers.d/10-wheel <<'EOF'
 %wheel ALL=(ALL:ALL) ALL
 EOF
 
+# Install Parch-specific embedded packages.
+pacman -U --noconfirm /root/pkgs/parch-*.pkg.tar.zst
+rm -rf /root/pkgs
+
 # The build host may not use VirtIO, but the resulting VM image must.
 sed -i \
     's/^MODULES=.*/MODULES=(virtio_pci virtio_blk virtio_scsi virtio_net)/' \
@@ -272,6 +283,15 @@ else
         >>/etc/default/grub
 fi
 grub-mkconfig -o /boot/grub/grub.cfg
+
+# Add world repo as last entry so it's available on the running system
+# without blocking the build if the mirror is unreachable.
+cat >>/etc/pacman.conf <<'EOF'
+
+[world]
+Server = https://mirror.parchlinux.ir/$repo/$arch/
+SigLevel = Never
+EOF
 
 pacman -Scc --noconfirm
 rm -rf /var/cache/pacman/pkg/* /var/lib/pacman/sync/*

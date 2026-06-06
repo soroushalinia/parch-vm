@@ -40,8 +40,8 @@ plasma_manifest="$ROOT_DIR/profiles/plasma/packages.txt"
 for package in \
     networkmanager \
     bash-completion \
-    parch-grub \
-    parch-plymouth; do
+    parch-plymouth \
+    parch-grub-theme; do
     has_package "$package" "$core_manifest"
 done
 
