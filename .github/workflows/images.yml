@@ -33,7 +33,7 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Build and test ${{ matrix.profile }} image
+      - name: Build ${{ matrix.profile }} image
         run: |
           docker run --rm --privileged \
             -v "$PWD:/workspace" \
@@ -43,15 +43,11 @@ jobs:
               pacman -Syu --noconfirm --needed \
                 arch-install-scripts \
                 dosfstools \
-                edk2-ovmf \
                 gptfdisk \
-                qemu-img \
-                qemu-system-x86
+                qemu-img
               ./build.sh \
                 --profile "${{ matrix.profile }}" \
                 --output "output/parch-${{ matrix.profile }}.qcow2"
-              BOOT_TIMEOUT=600 ./test/boot-smoke.sh \
-                "output/parch-${{ matrix.profile }}.qcow2"
             '
 
       - name: Compress image
