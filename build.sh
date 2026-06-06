@@ -170,7 +170,10 @@ mount "$loop_p2" "$mount_dir/boot"
 
 pacstrap -C "$PACMAN_CONFIG" -K "$mount_dir" "${packages[@]}"
 
-local_pkgs=("$ROOT_DIR/pkgs/parch-plymouth-"*.pkg.tar.zst "$ROOT_DIR/pkgs/parch-grub-theme-"*.pkg.tar.zst)
+local_pkgs=(
+    "$ROOT_DIR/pkgs/paru-"*.pkg.tar.zst
+    "$ROOT_DIR/pkgs/parch-plymouth-"*.pkg.tar.zst
+)
 if [[ "$profile" == "plasma" ]]; then
     local_pkgs+=("$ROOT_DIR/pkgs/parch-dorood-"*.pkg.tar.zst)
 fi
@@ -231,8 +234,8 @@ install -Dm440 /dev/stdin /etc/sudoers.d/10-wheel <<'EOF'
 %wheel ALL=(ALL:ALL) ALL
 EOF
 
-# Install Parch-specific embedded packages.
-pacman -U --noconfirm /root/pkgs/parch-*.pkg.tar.zst
+# Install embedded packages (paru + Parch-specific).
+pacman -U --noconfirm /root/pkgs/*.pkg.tar.zst
 rm -rf /root/pkgs
 
 # The build host may not use VirtIO, but the resulting VM image must.
@@ -273,15 +276,6 @@ sed -i \
     -e 's/^GRUB_TIMEOUT=.*/GRUB_TIMEOUT=1/' \
     -e 's/^GRUB_CMDLINE_LINUX_DEFAULT=.*/GRUB_CMDLINE_LINUX_DEFAULT="quiet splash console=tty0 console=ttyS0,115200n8"/' \
     /etc/default/grub
-if grep -Eq '^#?GRUB_THEME=' /etc/default/grub; then
-    sed -E -i \
-        's|^#?GRUB_THEME=.*|GRUB_THEME="/usr/share/grub/themes/parch/theme.txt"|' \
-        /etc/default/grub
-else
-    printf '%s\n' \
-        'GRUB_THEME="/usr/share/grub/themes/parch/theme.txt"' \
-        >>/etc/default/grub
-fi
 grub-mkconfig -o /boot/grub/grub.cfg
 
 # Add world repo as last entry so it's available on the running system

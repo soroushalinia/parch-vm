@@ -11,4 +11,3 @@ qemu-guest-agent
 cloud-init
 cloud-guest-utils
 pacman-contrib
-paru

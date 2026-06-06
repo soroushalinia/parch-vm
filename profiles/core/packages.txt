@@ -1,4 +1,2 @@
 networkmanager
 bash-completion
-parch-plymouth
-parch-grub-theme

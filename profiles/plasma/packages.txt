@@ -1,6 +1,5 @@
 sddm
 plasma
-parch-dorood
 
 elisa
 okular

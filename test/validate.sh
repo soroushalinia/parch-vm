@@ -39,16 +39,13 @@ plasma_manifest="$ROOT_DIR/profiles/plasma/packages.txt"
 
 for package in \
     networkmanager \
-    bash-completion \
-    parch-plymouth \
-    parch-grub-theme; do
+    bash-completion; do
     has_package "$package" "$core_manifest"
 done
 
 for package in \
     sddm \
     plasma \
-    parch-dorood \
     elisa \
     okular \
     kalk \
@@ -75,6 +72,14 @@ for package in \
     has_package "$package" "$plasma_manifest"
 done
 
+for pkg in \
+    pkgs/paru-*.pkg.tar.zst \
+    pkgs/parch-plymouth-*.pkg.tar.zst \
+    pkgs/parch-dorood-*.pkg.tar.zst; do
+    [[ -f "$ROOT_DIR/$pkg" ]] ||
+        fail "missing embedded package: $pkg"
+done
+
 readme_mentions_profile core
 readme_mentions_profile plasma
 
@@ -95,8 +100,6 @@ grep -q -- '--target=i386-pc' "$ROOT_DIR/build.sh" ||
     fail "BIOS GRUB target is not installed"
 grep -q -- '--target=x86_64-efi' "$ROOT_DIR/build.sh" ||
     fail "UEFI GRUB target is not installed"
-grep -q 'GRUB_THEME="/usr/share/grub/themes/parch/theme.txt"' "$ROOT_DIR/build.sh" ||
-    fail "Parch GRUB theme is not activated"
 grep -q "printf 'parch:parch" "$ROOT_DIR/build.sh" ||
     fail "default parch credentials are not configured"
 grep -q 'passwd --lock root' "$ROOT_DIR/build.sh" ||
