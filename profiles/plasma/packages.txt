@@ -21,6 +21,5 @@ xdg-user-dirs
 ark
 unzip
 unrar
-ttf-vazirmatn
 android-file-transfer
 gvfs-mtp

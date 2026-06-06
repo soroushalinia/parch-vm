@@ -66,7 +66,6 @@ for package in \
     ark \
     unzip \
     unrar \
-    ttf-vazirmatn \
     android-file-transfer \
     gvfs-mtp; do
     has_package "$package" "$plasma_manifest"
