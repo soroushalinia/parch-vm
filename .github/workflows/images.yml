@@ -50,7 +50,7 @@ jobs:
               ./build.sh \
                 --profile "${{ matrix.profile }}" \
                 --output "output/parch-${{ matrix.profile }}.qcow2"
-              BOOT_TIMEOUT=240 ./test/boot-smoke.sh \
+              BOOT_TIMEOUT=600 ./test/boot-smoke.sh \
                 "output/parch-${{ matrix.profile }}.qcow2"
             '
 

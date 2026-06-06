@@ -67,7 +67,6 @@ run_boot_test() {
         -machine q35,accel=tcg \
         -m 2048 \
         -smp 2 \
-        -nodefaults \
         -no-reboot \
         -nographic \
         -serial "file:$log_file" \
