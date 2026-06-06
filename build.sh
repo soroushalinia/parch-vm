@@ -277,6 +277,10 @@ sed -i \
     -e 's/^GRUB_TIMEOUT=.*/GRUB_TIMEOUT=1/' \
     -e 's/^GRUB_CMDLINE_LINUX_DEFAULT=.*/GRUB_CMDLINE_LINUX_DEFAULT="quiet splash console=tty0 console=ttyS0,115200n8"/' \
     /etc/default/grub
+printf '%s\n' \
+    'GRUB_TERMINAL="console serial"' \
+    'GRUB_SERIAL_COMMAND="serial --speed=115200 --unit=0 --word=8 --parity=no --stop=1"' \
+    >>/etc/default/grub
 grub-mkconfig -o /boot/grub/grub.cfg
 
 pacman -Scc --noconfirm
