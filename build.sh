@@ -176,6 +176,7 @@ local_pkgs=(
 )
 if [[ "$profile" == "plasma" ]]; then
     local_pkgs+=("$ROOT_DIR/pkgs/parch-dorood-"*.pkg.tar.zst)
+    local_pkgs+=("$ROOT_DIR/pkgs/ttf-vazirmatn-"*.pkg.tar.zst)
 fi
 mkdir -p "$mount_dir/root/pkgs"
 cp "${local_pkgs[@]}" "$mount_dir/root/pkgs/"
@@ -278,6 +279,9 @@ sed -i \
     /etc/default/grub
 grub-mkconfig -o /boot/grub/grub.cfg
 
+pacman -Scc --noconfirm
+rm -rf /var/cache/pacman/pkg/* /var/lib/pacman/sync/*
+
 # Add world repo as last entry so it's available on the running system
 # without blocking the build if the mirror is unreachable.
 cat >>/etc/pacman.conf <<'EOF'
@@ -286,13 +290,13 @@ cat >>/etc/pacman.conf <<'EOF'
 Server = https://mirror.parchlinux.ir/$repo/$arch/
 SigLevel = Never
 EOF
-
-pacman -Scc --noconfirm
-rm -rf /var/cache/pacman/pkg/* /var/lib/pacman/sync/*
 CHROOT
 
 sync
-umount -R "$mount_dir"
+umount -R "$mount_dir" 2>/dev/null || {
+    sleep 1
+    umount -R "$mount_dir" 2>/dev/null || true
+}
 for dev in "${loop_devices[@]}"; do
     losetup -d "$dev"
 done

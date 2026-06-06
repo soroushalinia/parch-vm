@@ -75,7 +75,8 @@ done
 for pkg in \
     pkgs/paru-*.pkg.tar.zst \
     pkgs/parch-plymouth-*.pkg.tar.zst \
-    pkgs/parch-dorood-*.pkg.tar.zst; do
+    pkgs/parch-dorood-*.pkg.tar.zst \
+    pkgs/ttf-vazirmatn-*.pkg.tar.zst; do
     [[ -f "$ROOT_DIR/$pkg" ]] ||
         fail "missing embedded package: $pkg"
 done
