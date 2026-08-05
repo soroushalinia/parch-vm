@@ -5,6 +5,7 @@ set -Eeuo pipefail
 readonly ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 readonly WORK_DIR="${WORK_DIR:-$ROOT_DIR/work}"
 readonly OUTPUT_DIR="${OUTPUT_DIR:-$ROOT_DIR/output}"
+readonly CACHE_DIR="${CACHE_DIR:-$ROOT_DIR/cache}"
 readonly OVERLAY_DIR="$ROOT_DIR/overlays/overlays/base-config"
 readonly PACMAN_CONFIG="$ROOT_DIR/pacman.conf"
 
@@ -168,7 +169,8 @@ mount "$loop_p3" "$mount_dir"
 mkdir -p "$mount_dir/boot"
 mount "$loop_p2" "$mount_dir/boot"
 
-pacstrap -C "$PACMAN_CONFIG" -K "$mount_dir" "${packages[@]}"
+mkdir -p "$CACHE_DIR"
+pacstrap -C "$PACMAN_CONFIG" -c "$CACHE_DIR" -K "$mount_dir" "${packages[@]}"
 
 local_pkgs=(
     "$ROOT_DIR/pkgs/paru-"*.pkg.tar.zst
